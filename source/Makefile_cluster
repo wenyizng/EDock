@@ -1,0 +1,10 @@
+CC=g++
+HEADER2=mol.h output.h cluster.h precon.h
+SOURCE2=mol.cpp output.cpp precon.cpp
+all:cluster
+
+cluster: cluster.cpp ${SOURCE2} ${HEADER2}
+	${CC} ${SOURCE2} $@.cpp -o $@
+
+clean:
+	rm cluster

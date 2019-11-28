@@ -1,0 +1,66 @@
+EDock: Protein-ligand docking by Replica-Exchange Monte Carlo simulation
+
+------- general information on how to run EDock ------------
+
+EDock docking program needs four consecutive steps (please ensure
+the last step was completed before running the next step):
+
+        0, download and install Chimera
+        1, prepare the pocket file, protein energy (prepare.py);
+        2, perform EDock simulation (runEDock.py)
+        3, get the docking results (runxscore.py)
+        
+----------------------- Step by step ---------------------------
+
+0. Download Chimera
+
+   Download Chimera from https://www.cgl.ucsf.edu/chimera/download.html and install the chimera 
+   at ./script/beforedocking/chimera
+
+1. run 'prepare.py target_name'
+   input files:
+        receptor.pdb                (protein 3D structure in PDB format)
+        lig_charge.mol2             (ligand 3D structure in MOL2 format. You should added the atom's
+                                     charge value. You can use Chimera to complete the MOL2 file)
+        coach_cluster.dat           (one output file by COACH which indicates the binding residues information 
+                                     on protein structure. The user can use the output result from COACH, or
+                                     define the binding residues themselves. The file format must contain two
+                                     lines, the fist line is the mark line which describes the index of binding
+                                     sites cluster, for example: 'Site 1'. The second line is amino acid
+                                     sequence number, such as
+                                     '11,12,13,14,15,16,17,54,115,118,175,176,203,204,205,206,210'. 
+                                     The number can not be larger than length of sequence.)
+   output files:
+        receptor.mol2                
+        negativeimage_model*.pdb     (docking pocket in PDB format)
+        grid*.*                      (protein energy potential)
+        rec_box*.pdb                 (docking box)
+        select_spheres*.sph          (docking pocket in SPH format)
+
+   Notes:
+        The case should be saved in the 'example' folder.
+
+2. run 'runEDock.py target_name'
+   input files:
+        grid*.*                      (protein potential)  
+        select_spheres*.sph          (docking pocket)
+   output files:
+        site1.acc                    (REMC simulation information)
+        site1.mol2                   (all accepted conformations)
+
+   Notes:
+        The EDock will perform simulation at the binding site cluster 1. If you want to dock at other cluster, you can change the parameter in line 38 of 'runEDock.py' script. 
+          
+3. run 'runxscore.py target_name'
+   input files:
+        site1.mol2                   (all accepted conformations)
+        score.input                  (the parameter file for XSCORE)
+   output files:
+        hit1.mdb                     (the folder containing top 5 docking poses)
+        xscore.table                 (all conformation XSCORE value)
+        xscore.log                   (top 5 conformation XSCORE value)
+
+
+----------------------------------------------------------
+
+Wenyi Zhang (wenyizhng@umich.edu), Minghao Yin (ymh@nenu.edu.cn), Yang Zhang (zhng@umich.edu)

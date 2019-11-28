@@ -1,0 +1,58 @@
+######################################################################
+#                            XTOOL/SCORE                             # 
+######################################################################
+###
+FUNCTION	SCORE
+###
+### specify the input and output files -------------------------------
+###
+#
+RECEPTOR_PDB_FILE    ./receptor.pdb 
+#COFACTOR_MOL2_FILE  none 
+LIGAND_MOL2_FILE     ./site1.mol2
+#
+OUTPUT_TABLE_FILE    ./xscore.table
+OUTPUT_LOG_FILE      ./xscore.log
+###
+### how many top hits to extract from the LIGAND_MOL2?
+###
+NUMBER_OF_HITS       5 
+HITS_DIRECTORY       ./hit1.mdb 
+###
+### want to include atomic binding scores in the resulting Mol2 files?
+###
+SHOW_ATOM_BIND_SCORE	YES		[YES/NO]
+###
+### set up scoring functions -----------------------------------------
+###
+APPLY_HPSCORE         YES             	[YES/NO]
+	HPSCORE_CVDW  0.004 
+	HPSCORE_CHB   0.054
+	HPSCORE_CHP   0.009
+	HPSCORE_CRT  -0.061
+	HPSCORE_C0    3.441
+APPLY_HMSCORE         YES             	[YES/NO]
+	HMSCORE_CVDW  0.004
+	HMSCORE_CHB   0.101
+	HMSCORE_CHM   0.387
+	HMSCORE_CRT  -0.097
+	HMSCORE_C0    3.567
+APPLY_HSSCORE         YES 	  	[YES/NO]
+	HSSCORE_CVDW  0.004
+	HSSCORE_CHB   0.073
+	HSSCORE_CHS   0.004
+	HSSCORE_CRT  -0.090
+	HSSCORE_C0    3.328
+###
+### set up chemical rules for pre-screening ligand molecules ---------
+###
+APPLY_CHEMICAL_RULES    NO            [YES/NO]	
+	MAXIMAL_MOLECULAR_WEIGHT      600.0
+	MINIMAL_MOLECULAR_WEIGHT      200.0
+	MAXIMAL_LOGP                  6.00
+	MINIMAL_LOGP                  1.00
+	MAXIMAL_HB_ATOM               8 
+	MINIMAL_HB_ATOM               1 
+###
+###
+

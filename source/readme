@@ -1,0 +1,15 @@
+Compile
+make
+
+G++ version:
+gcc-8.3.0
+
+run example:
+edock_rigid output 1 60 grid1 select_shpere.sph 1 1
+
+output is the file to save all sampling conformations.
+1 is the lowest temperature.
+60 is the highest temperature.
+grid1 is the receptor grid file.
+select_sphere.sph is the docking residues.
+The last two numbers are the energy weights. 
