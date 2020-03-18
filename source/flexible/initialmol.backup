@@ -1,0 +1,153 @@
+bool intialmol(vector <DOCKMol> &molvec, DOCKMol mol,float spherecenterx,float spherecentery,float spherecenterz,int initialnum,mt19937 &gen,AMBER_TYPER & amber,Energy_Score & c_nrg, string filevdw, string fileflex,string fileflex_drive_tbl,string grid_file,vector<TORSION> &torsions, bool flexible_flag)
+{
+    if(molvec.size()>=initialnum)
+        return true;
+    if(molvec.size()==0)
+    {
+       float ligcenterx,ligcentery,ligcenterz;
+       ligcenterx=ligcentery=ligcenterz=0;
+       for(int i=0;i<mol.num_atoms;i++)
+       {
+           ligcenterx +=mol.x[i];
+           ligcentery +=mol.y[i];
+           ligcenterz +=mol.z[i];
+       }
+       ligcenterx=ligcenterx/mol.num_atoms;
+       ligcentery=ligcentery/mol.num_atoms;
+       ligcenterz=ligcenterz/mol.num_atoms;
+       double t[3];
+       t[0]=spherecenterx-ligcenterx;
+       t[1]=spherecentery-ligcentery;
+       t[2]=spherecenterz-ligcenterz;
+       
+       for(int atom=0;atom<mol.num_atoms;atom++)
+       {
+           mol.x[atom] +=t[0];
+           mol.y[atom] +=t[1];
+           mol.z[atom] +=t[2];
+       }
+       
+       //MC part 
+       vector<DOCKMol> MCrotatemols;
+       vector <float> tmpenergy;
+       vector<vector<float> > tmpx,tmpy,tmpz;
+       vector<float> replica_MC_energy;
+       if(MC(amber, mol, c_nrg,filevdw.c_str(), fileflex.c_str(),fileflex_drive_tbl.c_str(),grid_file,1,tmpx,tmpy,tmpz,tmpenergy,500.0,1.0,gen,replica_MC_energy,torsions,flexible_flag))
+       {
+           cout<<"MC can get how many conformaitons for the REMC!"<<endl;
+           cout<<tmpx.size()<<endl;
+           bool MC_flag=0;
+           if(tmpx.size()>=initialnum && MC_flag==0)
+           {
+	       for(int i=0;i<initialnum;i++)
+               {
+                   DOCKMol copymol;
+                   copy_molecule(copymol, mol);
+                   
+                   for(int atomi=0;atomi<mol.num_atoms;atomi++)
+                   {
+                       copymol.x[atomi]=tmpx[i][atomi];
+                       copymol.y[atomi]=tmpy[i][atomi];   
+                       copymol.z[atomi]=tmpz[i][atomi]; 
+                   }
+                   copymol.current_score=tmpenergy[i];   
+                   molvec.push_back(copymol);
+               }
+               MC_flag=1;
+           }
+           if(tmpx.size()<initialnum && MC_flag==0)
+           {
+               if(tmpx.size()%2==1)
+               {
+                  DOCKMol copymol;
+                  copy_molecule(copymol, mol);
+                  for(int atomi=0;atomi<mol.num_atoms;atomi++)
+                   {
+                       copymol.x[atomi]=tmpx[0][atomi];
+                       copymol.y[atomi]=tmpy[0][atomi];   
+                       copymol.z[atomi]=tmpz[0][atomi]; 
+                   }   
+                   molvec.push_back(copymol);
+                  
+                 for(int i=0;i<tmpx.size();i++)
+                 {
+                     DOCKMol copymol;
+                     copy_molecule(copymol, mol);
+                   
+                     for(int atomi=0;atomi<mol.num_atoms;atomi++)
+                     {
+                         copymol.x[atomi]=tmpx[i][atomi];
+                         copymol.y[atomi]=tmpy[i][atomi];   
+                         copymol.z[atomi]=tmpz[i][atomi]; 
+                      }   
+                     molvec.push_back(copymol);
+                 }
+                                
+               }
+              if(tmpx.size()%2==0)
+              {
+                  for(int i=0;i<tmpx.size();i++)
+                  {
+                     DOCKMol copymol;
+                     copy_molecule(copymol, mol);
+                   
+                     for(int atomi=0;atomi<mol.num_atoms;atomi++)
+                     {
+                         copymol.x[atomi]=tmpx[i][atomi];
+                         copymol.y[atomi]=tmpy[i][atomi];   
+                         copymol.z[atomi]=tmpz[i][atomi]; 
+                      }   
+                     molvec.push_back(copymol);
+                  }    
+              }
+              MC_flag=1;  
+           }
+           if(tmpx.size()==0 && MC_flag==0)
+           {
+               cout<<"the initial conformation is bad, can't get the docking result!"<<endl;
+               //finial output mol
+               return false;
+           }
+       }
+    return true;
+    }
+
+   if(molvec.size()==1) // copy this conformation, and replica is 2.
+   {
+       for(int i=0;i<2;i++)
+       {
+           DOCKMol copymol;
+           copy_molecule(copymol, mol);
+                   
+           for(int atomi=0;atomi<mol.num_atoms;atomi++)
+           {
+               copymol.x[atomi]=molvec[0].x[atomi];
+               copymol.y[atomi]=molvec[0].y[atomi];   
+               copymol.z[atomi]=molvec[0].z[atomi]; 
+           }   
+               molvec.push_back(copymol);
+       }
+       return true;    
+   }
+   if(molvec.size()<initialnum && molvec.size()>=2) //if replica is odd, then run REMC 
+   {
+       if(molvec.size()%2==0)
+           return true;
+       if(molvec.size()%2==1)
+       {
+           DOCKMol copymol;
+           copy_molecule(copymol, mol);
+                   
+           for(int atomi=0;atomi<mol.num_atoms;atomi++)
+           {
+               copymol.x[atomi]=molvec[0].x[atomi];
+               copymol.y[atomi]=molvec[0].y[atomi];   
+               copymol.z[atomi]=molvec[0].z[atomi]; 
+           }   
+               molvec.push_back(copymol);  
+           return true;
+       }
+   }
+   
+}
+
